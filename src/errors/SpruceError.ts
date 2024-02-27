@@ -15,6 +15,10 @@ export default class SpruceError extends BaseSpruceError<ErrorOptions> {
 				message = 'Cannot stop task queue if it has not been started!'
 				break
 
+			case 'TASK_CALLBACK_FAILED':
+				message = `Task callback failed! Original error:\n\n${options?.originalError?.message}`
+				break
+
 			default:
 				message = super.friendlyMessage()
 		}

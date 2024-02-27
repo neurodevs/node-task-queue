@@ -24,7 +24,7 @@ export default class TaskQueueImplTest extends AbstractSpruceTest {
 	@test()
 	protected static async throwsOnStartIfNoQueuedTasks() {
 		const err = await assert.doesThrowAsync(
-			() => this.queue.start(),
+			() => this.startQueue(),
 			'Cannot start task queue if no tasks are queued!'
 		)
 		errorAssert.assertError(err, 'NO_QUEUED_TASKS')
@@ -33,16 +33,34 @@ export default class TaskQueueImplTest extends AbstractSpruceTest {
 	@test()
 	protected static async throwsOnStopIfNotAlreadyStarted() {
 		const err = await assert.doesThrowAsync(
-			() => this.queue.stop(),
+			() => this.stopQueue(),
 			'Cannot stop task queue if it has not been started!'
 		)
 		errorAssert.assertError(err, 'QUEUE_NOT_STARTED')
 	}
 
 	@test()
+	protected static async throwsIfTaskCallbackFails() {
+		const originalError = 'Original error message!'
+
+		this.pushTask({
+			callback: () => {
+				throw new Error(originalError)
+			},
+		})
+
+		const err = await assert.doesThrowAsync(
+			() => this.startQueue(),
+			`Task callback failed! Original error:\n\n${originalError}`
+		)
+
+		errorAssert.assertError(err, 'TASK_CALLBACK_FAILED')
+	}
+
+	@test()
 	protected static async queuesOneTask() {
 		const task = this.pushTask()
-		const queuedTasks = this.queue.getQueuedTasks()
+		const queuedTasks = this.getQueuedTasks()
 		assert.isEqualDeep(queuedTasks, [task])
 	}
 
@@ -50,7 +68,7 @@ export default class TaskQueueImplTest extends AbstractSpruceTest {
 	protected static async queuesTwoTasks() {
 		const task1 = this.pushTask()
 		const task2 = this.pushTask()
-		const queuedTasks = this.queue.getQueuedTasks()
+		const queuedTasks = this.getQueuedTasks()
 		assert.isEqualDeep(queuedTasks, [task1, task2])
 	}
 
@@ -62,11 +80,8 @@ export default class TaskQueueImplTest extends AbstractSpruceTest {
 			wasHit = true
 		}
 
-		this.queue.pushTask({
-			callback: mockCallback,
-			waitAfterMs: this.waitAfterMs,
-		})
-		await this.start()
+		this.pushTask({ callback: mockCallback })
+		await this.startQueue()
 		assert.isTrue(wasHit)
 	}
 
@@ -83,15 +98,9 @@ export default class TaskQueueImplTest extends AbstractSpruceTest {
 			wasHit2 = true
 		}
 
-		this.queue.pushTask({
-			callback: mockCallback1,
-			waitAfterMs: this.waitAfterMs,
-		})
-		this.queue.pushTask({
-			callback: mockCallback2,
-			waitAfterMs: this.waitAfterMs,
-		})
-		await this.start()
+		this.pushTask({ callback: mockCallback1 })
+		this.pushTask({ callback: mockCallback2 })
+		await this.startQueue()
 		assert.isTrue(wasHit1)
 		assert.isTrue(wasHit2)
 	}
@@ -100,7 +109,7 @@ export default class TaskQueueImplTest extends AbstractSpruceTest {
 	protected static async startWaitsForExpectedDuration() {
 		this.pushTask()
 		const startTime = Date.now()
-		await this.start()
+		await this.startQueue()
 		const endTime = Date.now()
 
 		const duration = endTime - startTime
@@ -111,9 +120,9 @@ export default class TaskQueueImplTest extends AbstractSpruceTest {
 	@test()
 	protected static async stopCancelsOneQueuedTasks() {
 		this.pushTask()
-		const startPromise = this.start()
-		await this.stop()
-		const queuedTasks = this.queue.getQueuedTasks()
+		const startPromise = this.startQueue()
+		await this.stopQueue()
+		const queuedTasks = this.getQueuedTasks()
 		assert.isEqualDeep(queuedTasks, [])
 
 		await startPromise
@@ -123,9 +132,9 @@ export default class TaskQueueImplTest extends AbstractSpruceTest {
 	protected static async stopCancelsTwoQueuedTasks() {
 		this.pushTask()
 		this.pushTask()
-		const startPromise = this.start()
-		await this.stop()
-		const queuedTasks = this.queue.getQueuedTasks()
+		const startPromise = this.startQueue()
+		await this.stopQueue()
+		const queuedTasks = this.getQueuedTasks()
 		assert.isEqualDeep(queuedTasks, [])
 
 		await startPromise
@@ -141,8 +150,8 @@ export default class TaskQueueImplTest extends AbstractSpruceTest {
 
 		this.pushTask()
 		this.pushTask({ callback: mockCallback, waitAfterMs: 1000 })
-		const startPromise = this.start()
-		await this.stop()
+		const startPromise = this.startQueue()
+		await this.stopQueue()
 		await startPromise
 		assert.isFalse(wasHit)
 	}
@@ -158,11 +167,15 @@ export default class TaskQueueImplTest extends AbstractSpruceTest {
 		return { callback, waitAfterMs }
 	}
 
-	private static async start() {
+	private static getQueuedTasks() {
+		return this.queue.getQueuedTasks()
+	}
+
+	private static async startQueue() {
 		await this.queue.start()
 	}
 
-	private static async stop() {
+	private static async stopQueue() {
 		await this.queue.stop()
 	}
 }

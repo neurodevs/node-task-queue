@@ -1,5 +1,5 @@
 import SpruceError from '../errors/SpruceError'
-import { TaskQueue, Task } from '../types/nodeTaskQueue.types'
+import { TaskQueue, Task, TaskCallback } from '../types/nodeTaskQueue.types'
 
 export default class TaskQueueImpl implements TaskQueue {
 	protected queuedTasks: Task[]
@@ -32,11 +32,23 @@ export default class TaskQueueImpl implements TaskQueue {
 				break
 			}
 			const { callback, waitAfterMs } = task
-			callback()
+
+			this.tryToExecute(callback)
 
 			if (waitAfterMs) {
 				await this.wait(waitAfterMs)
 			}
+		}
+	}
+
+	private tryToExecute(callback: TaskCallback) {
+		try {
+			callback()
+		} catch (error) {
+			throw new SpruceError({
+				code: 'TASK_CALLBACK_FAILED',
+				originalError: error as Error,
+			})
 		}
 	}
 

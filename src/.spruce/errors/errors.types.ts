@@ -11,6 +11,27 @@ import * as SpruceSchema from '@sprucelabs/schema'
 export declare namespace SpruceErrors.NodeTaskQueue {
 
 	
+	export interface TaskCallbackFailed {
+		
+	}
+
+	export interface TaskCallbackFailedSchema extends SpruceSchema.Schema {
+		id: 'taskCallbackFailed',
+		namespace: 'NodeTaskQueue',
+		name: 'Task Callback Failed',
+		    fields: {
+		    }
+	}
+
+	export type TaskCallbackFailedEntity = SchemaEntity<SpruceErrors.NodeTaskQueue.TaskCallbackFailedSchema>
+
+}
+
+
+
+export declare namespace SpruceErrors.NodeTaskQueue {
+
+	
 	export interface QueueNotStarted {
 		
 	}
