@@ -72,6 +72,10 @@ export default class TaskQueueImpl implements TaskQueue {
 		this.assertQueueIsRunning()
 		this.isRunning = false
 		this.queuedTasks = []
+
+		if (this.resolveWait) {
+			this.resolveWait()
+		}
 	}
 
 	private assertQueueIsRunning() {

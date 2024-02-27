@@ -179,7 +179,7 @@ export default class TaskQueueImplTest extends AbstractSpruceTest {
 		throw new Error('Callback failed!')
 	})
 	protected static async doesNotWaitAfterMsIfTaskThrows(cb: TaskCallback) {
-		const start = Date.now()
+		const startTime = Date.now()
 
 		this.pushTask({
 			callback: cb,
@@ -191,9 +191,9 @@ export default class TaskQueueImplTest extends AbstractSpruceTest {
 		} catch {
 			//empty
 		} finally {
-			const now = Date.now()
-			const diff = now - start
-			assert.isBelow(diff, 10)
+			const endTime = Date.now()
+			const durationMs = endTime - startTime
+			assert.isBelow(durationMs, 10)
 		}
 	}
 
@@ -217,6 +217,21 @@ export default class TaskQueueImplTest extends AbstractSpruceTest {
 			await this.startQueue()
 		}
 		assert.isEqual(numHits, 2)
+	}
+
+	@test()
+	protected static async stoppingResolvesWait() {
+		this.pushTask({ waitAfterMs: 1000 })
+
+		const startTime = Date.now()
+
+		const startPromise = this.startQueue()
+		await this.stopQueue()
+		await startPromise
+
+		const endTime = Date.now()
+		const durationMs = endTime - startTime
+		assert.isBelow(durationMs, 10)
 	}
 
 	private static async assertThrowsWithErrorCallback(callback: () => void) {
