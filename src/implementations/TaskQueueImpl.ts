@@ -4,6 +4,8 @@ import { TaskQueue, Task, TaskCallback } from '../types/nodeTaskQueue.types'
 export default class TaskQueueImpl implements TaskQueue {
 	protected queuedTasks: Task[]
 	private isRunning: boolean
+	private waitResolve?: () => void
+	private lastError?: SpruceError
 
 	public constructor() {
 		this.queuedTasks = []
@@ -31,29 +33,41 @@ export default class TaskQueueImpl implements TaskQueue {
 			if (!this.isRunning) {
 				break
 			}
+
 			const { callback, waitAfterMs } = task
 
-			this.tryToExecute(callback)
+			void this.tryToExecute(callback)
 
-			if (waitAfterMs) {
+			if (waitAfterMs && !this.lastError) {
 				await this.wait(waitAfterMs)
 			}
+
+			if (this.lastError) {
+				throw this.lastError
+			}
+
+			// calling start after fail doesn't automatically fail
 		}
 	}
 
-	private tryToExecute(callback: TaskCallback) {
+	private async tryToExecute(callback: TaskCallback) {
 		try {
-			callback()
+			await callback()
 		} catch (error) {
-			throw new SpruceError({
+			this.lastError = new SpruceError({
 				code: 'TASK_CALLBACK_FAILED',
 				originalError: error as Error,
 			})
+
+			this.waitResolve?.()
 		}
 	}
 
 	private async wait(waitMs: number) {
-		await new Promise((resolve) => setTimeout(resolve, waitMs))
+		await new Promise((resolve) => {
+			this.waitResolve = resolve as any
+			setTimeout(resolve, waitMs)
+		})
 	}
 
 	public async stop() {
