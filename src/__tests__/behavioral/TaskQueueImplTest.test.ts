@@ -173,10 +173,10 @@ export default class TaskQueueImplTest extends AbstractSpruceTest {
 	}
 
 	@test('does not wait after thrown sync function', () => {
-		throw new Error('yay')
+		throw new Error('Callback failed!')
 	})
 	@test('does not wait after thrown async function', async () => {
-		throw new Error('yay')
+		throw new Error('Callback failed!')
 	})
 	protected static async doesNotWaitAfterMsIfTaskThrows(cb: TaskCallback) {
 		const start = Date.now()
@@ -195,6 +195,28 @@ export default class TaskQueueImplTest extends AbstractSpruceTest {
 			const diff = now - start
 			assert.isBelow(diff, 10)
 		}
+	}
+
+	@test()
+	protected static async callingStartAfterFailResumesFromFailedTask() {
+		let numHits = 0
+
+		const mockCallback = () => {
+			numHits++
+			if (numHits === 1) {
+				throw new Error('Callback failed!')
+			}
+		}
+
+		this.pushTask({ callback: mockCallback })
+		this.pushTask()
+
+		try {
+			await this.startQueue()
+		} catch {
+			await this.startQueue()
+		}
+		assert.isEqual(numHits, 2)
 	}
 
 	private static async assertThrowsWithErrorCallback(callback: () => void) {

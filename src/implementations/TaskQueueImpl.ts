@@ -4,7 +4,7 @@ import { TaskQueue, Task, TaskCallback } from '../types/nodeTaskQueue.types'
 export default class TaskQueueImpl implements TaskQueue {
 	protected queuedTasks: Task[]
 	private isRunning: boolean
-	private waitResolve?: () => void
+	private resolveWait?: () => void
 	private lastError?: SpruceError
 
 	public constructor() {
@@ -29,11 +29,10 @@ export default class TaskQueueImpl implements TaskQueue {
 	}
 
 	private async executeTasks() {
-		for (const task of this.queuedTasks) {
-			if (!this.isRunning) {
-				break
-			}
+		this.lastError = undefined
 
+		while (this.queuedTasks.length > 0 && this.isRunning) {
+			const task = this.queuedTasks.shift() as Task
 			const { callback, waitAfterMs } = task
 
 			void this.tryToExecute(callback)
@@ -43,10 +42,9 @@ export default class TaskQueueImpl implements TaskQueue {
 			}
 
 			if (this.lastError) {
+				this.queuedTasks.unshift(task)
 				throw this.lastError
 			}
-
-			// calling start after fail doesn't automatically fail
 		}
 	}
 
@@ -59,13 +57,13 @@ export default class TaskQueueImpl implements TaskQueue {
 				originalError: error as Error,
 			})
 
-			this.waitResolve?.()
+			this.resolveWait?.()
 		}
 	}
 
 	private async wait(waitMs: number) {
 		await new Promise((resolve) => {
-			this.waitResolve = resolve as any
+			this.resolveWait = resolve as any
 			setTimeout(resolve, waitMs)
 		})
 	}
