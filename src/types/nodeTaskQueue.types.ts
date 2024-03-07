@@ -4,6 +4,8 @@ export interface TaskQueue {
 	stop(): Promise<void>
 }
 
+export type TaskQueueConstructor = new () => TaskQueue
+
 export interface Task {
 	callback: TaskCallback
 	waitAfterMs?: number
