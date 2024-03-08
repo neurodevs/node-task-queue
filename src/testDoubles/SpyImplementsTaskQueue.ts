@@ -1,6 +1,6 @@
 import { Task, TaskQueue } from '../types/nodeTaskQueue.types'
 
-export default class MockTaskQueue implements TaskQueue {
+export default class SpyImplementsTaskQueue implements TaskQueue {
 	public pushTaskCalls: Task[]
 	public numStartCalls: number
 	public numStopCalls: number
