@@ -5,20 +5,23 @@ import AbstractSpruceTest, {
 	errorAssert,
 	generateId,
 } from '@sprucelabs/test-utils'
-import SpyExtendsTaskQueueImpl from '../../testDoubles/SpyExtendsTaskQueueImpl'
+import TaskQueueImpl from '../../implementations/TaskQueueImpl'
+import SpyExtendsTaskQueue from '../../testDoubles/SpyExtendsTaskQueue'
 import { TaskCallback } from '../../types/nodeTaskQueue.types'
 
 export default class TaskQueueImplTest extends AbstractSpruceTest {
-	private static queue: SpyExtendsTaskQueueImpl
+	private static queue: SpyExtendsTaskQueue
 	private static callback: () => void
 	private static waitAfterMs: number
 
 	protected static async beforeEach() {
 		await super.beforeEach()
 
+		TaskQueueImpl.Class = SpyExtendsTaskQueue
+
 		this.callback = () => {}
 		this.waitAfterMs = randomInt(20, 50)
-		this.queue = new SpyExtendsTaskQueueImpl()
+		this.queue = TaskQueueImpl.Queue() as SpyExtendsTaskQueue
 
 		assert.isTruthy(this.queue)
 	}

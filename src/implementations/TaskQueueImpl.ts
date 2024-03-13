@@ -1,13 +1,24 @@
 import SpruceError from '../errors/SpruceError'
-import { TaskQueue, Task, TaskCallback } from '../types/nodeTaskQueue.types'
+import {
+	TaskQueue,
+	Task,
+	TaskCallback,
+	TaskQueueConstructor,
+} from '../types/nodeTaskQueue.types'
 
 export default class TaskQueueImpl implements TaskQueue {
+	public static Class?: TaskQueueConstructor
+
 	protected queuedTasks: Task[]
 	private isRunning: boolean
 	private resolveWait?: () => void
 	private lastError?: SpruceError
 
-	public constructor() {
+	public static Queue() {
+		return new (this.Class ?? this)()
+	}
+
+	protected constructor() {
 		this.queuedTasks = []
 		this.isRunning = false
 	}
