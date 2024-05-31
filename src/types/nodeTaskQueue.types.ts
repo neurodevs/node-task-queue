@@ -12,3 +12,15 @@ export interface Task {
 }
 
 export type TaskCallback = () => Promise<void> | void
+
+export interface RevolvingQueue {
+    pushTask(task: TaskCallback): void
+}
+
+export type RevolvingQueueConstructor = new (
+    options?: RevolvingQueueOptions
+) => RevolvingQueue
+
+export interface RevolvingQueueOptions {
+    taskTimeoutMs?: number
+}

@@ -1,6 +1,9 @@
 import { SpruceErrors } from "#spruce/errors/errors.types"
 import { ErrorOptions as ISpruceErrorOptions} from "@sprucelabs/error"
 
+export interface TaskCallbackTimedOutErrorOptions extends SpruceErrors.NodeTaskQueue.TaskCallbackTimedOut, ISpruceErrorOptions {
+	code: 'TASK_CALLBACK_TIMED_OUT'
+}
 export interface TaskCallbackFailedErrorOptions extends SpruceErrors.NodeTaskQueue.TaskCallbackFailed, ISpruceErrorOptions {
 	code: 'TASK_CALLBACK_FAILED'
 }
@@ -11,6 +14,6 @@ export interface NoQueuedTasksErrorOptions extends SpruceErrors.NodeTaskQueue.No
 	code: 'NO_QUEUED_TASKS'
 }
 
-type ErrorOptions =  | TaskCallbackFailedErrorOptions  | QueueNotStartedErrorOptions  | NoQueuedTasksErrorOptions 
+type ErrorOptions =  | TaskCallbackTimedOutErrorOptions  | TaskCallbackFailedErrorOptions  | QueueNotStartedErrorOptions  | NoQueuedTasksErrorOptions 
 
 export default ErrorOptions

@@ -16,7 +16,11 @@ export default class SpruceError extends BaseSpruceError<ErrorOptions> {
                 break
 
             case 'TASK_CALLBACK_FAILED':
-                message = `Task callback failed! Original error:\n\n${options?.originalError?.message}`
+                message = `Task callback failed! ${options?.task ? `Failing callback:\n\n${options?.task}\n\n` : null}Original error:\n\n${options?.originalError?.message}`
+                break
+
+            case 'TASK_CALLBACK_TIMED_OUT':
+                message = `Task callback timed out after ${options?.timeoutMs} milliseconds! Failing callback:\n\n${options?.task}`
                 break
 
             default:

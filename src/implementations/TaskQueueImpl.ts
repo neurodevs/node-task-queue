@@ -43,7 +43,7 @@ export default class TaskQueueImpl implements TaskQueue {
         this.lastError = undefined
 
         while (this.queuedTasks.length > 0 && this.isRunning) {
-            const task = this.queuedTasks.shift() as Task
+            const task = this.queuedTasks.shift()!
             const { callback, waitAfterMs } = task
 
             void this.tryToExecute(callback)

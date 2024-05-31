@@ -1,6 +1,6 @@
 {
   "name": "@neurodevs/node-task-queue",
-  "version": "0.4.4",
+  "version": "0.5.0",
   "main": "build/index.js",
   "repository": "https://github.com/neurodevs/node-task-queue.git",
   "scripts": {

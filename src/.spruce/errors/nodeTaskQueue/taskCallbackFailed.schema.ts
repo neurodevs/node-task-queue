@@ -8,6 +8,11 @@ const taskCallbackFailedSchema: SpruceErrors.NodeTaskQueue.TaskCallbackFailedSch
 	namespace: 'NodeTaskQueue',
 	name: 'Task Callback Failed',
 	    fields: {
+	            /** . */
+	            'task': {
+	                type: 'text',
+	                options: undefined
+	            },
 	    }
 }
 

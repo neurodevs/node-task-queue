@@ -7,11 +7,50 @@ import * as SpruceSchema from '@sprucelabs/schema'
 
 
 
+
+export declare namespace SpruceErrors.NodeTaskQueue {
+
+	
+	export interface TaskCallbackTimedOut {
+		
+			
+			'timeoutMs': number
+			
+			'task': string
+	}
+
+	export interface TaskCallbackTimedOutSchema extends SpruceSchema.Schema {
+		id: 'taskCallbackTimedOut',
+		namespace: 'NodeTaskQueue',
+		name: 'Task Callback Timed Out',
+		    fields: {
+		            /** . */
+		            'timeoutMs': {
+		                type: 'number',
+		                isRequired: true,
+		                options: undefined
+		            },
+		            /** . */
+		            'task': {
+		                type: 'text',
+		                isRequired: true,
+		                options: undefined
+		            },
+		    }
+	}
+
+	export type TaskCallbackTimedOutEntity = SchemaEntity<SpruceErrors.NodeTaskQueue.TaskCallbackTimedOutSchema>
+
+}
+
+
 export declare namespace SpruceErrors.NodeTaskQueue {
 
 	
 	export interface TaskCallbackFailed {
 		
+			
+			'task'?: string| undefined | null
 	}
 
 	export interface TaskCallbackFailedSchema extends SpruceSchema.Schema {
@@ -19,6 +58,11 @@ export declare namespace SpruceErrors.NodeTaskQueue {
 		namespace: 'NodeTaskQueue',
 		name: 'Task Callback Failed',
 		    fields: {
+		            /** . */
+		            'task': {
+		                type: 'text',
+		                options: undefined
+		            },
 		    }
 	}
 
