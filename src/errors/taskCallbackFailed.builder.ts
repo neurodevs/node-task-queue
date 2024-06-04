@@ -4,7 +4,11 @@ export default buildErrorSchema({
     id: 'taskCallbackFailed',
     name: 'Task Callback Failed',
     fields: {
-        task: {
+        callback: {
+            type: 'text',
+            isRequired: false,
+        },
+        name: {
             type: 'text',
             isRequired: false,
         },

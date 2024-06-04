@@ -16,7 +16,9 @@ export declare namespace SpruceErrors.NodeTaskQueue {
 			
 			'timeoutMs': number
 			
-			'task': string
+			'callback'?: string| undefined | null
+			
+			'name'?: string| undefined | null
 	}
 
 	export interface TaskCallbackTimedOutSchema extends SpruceSchema.Schema {
@@ -31,9 +33,13 @@ export declare namespace SpruceErrors.NodeTaskQueue {
 		                options: undefined
 		            },
 		            /** . */
-		            'task': {
+		            'callback': {
 		                type: 'text',
-		                isRequired: true,
+		                options: undefined
+		            },
+		            /** . */
+		            'name': {
+		                type: 'text',
 		                options: undefined
 		            },
 		    }
@@ -50,7 +56,9 @@ export declare namespace SpruceErrors.NodeTaskQueue {
 	export interface TaskCallbackFailed {
 		
 			
-			'task'?: string| undefined | null
+			'callback'?: string| undefined | null
+			
+			'name'?: string| undefined | null
 	}
 
 	export interface TaskCallbackFailedSchema extends SpruceSchema.Schema {
@@ -59,7 +67,12 @@ export declare namespace SpruceErrors.NodeTaskQueue {
 		name: 'Task Callback Failed',
 		    fields: {
 		            /** . */
-		            'task': {
+		            'callback': {
+		                type: 'text',
+		                options: undefined
+		            },
+		            /** . */
+		            'name': {
 		                type: 'text',
 		                options: undefined
 		            },

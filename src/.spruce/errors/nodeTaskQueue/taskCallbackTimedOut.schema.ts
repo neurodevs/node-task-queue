@@ -15,9 +15,13 @@ const taskCallbackTimedOutSchema: SpruceErrors.NodeTaskQueue.TaskCallbackTimedOu
 	                options: undefined
 	            },
 	            /** . */
-	            'task': {
+	            'callback': {
 	                type: 'text',
-	                isRequired: true,
+	                options: undefined
+	            },
+	            /** . */
+	            'name': {
+	                type: 'text',
 	                options: undefined
 	            },
 	    }

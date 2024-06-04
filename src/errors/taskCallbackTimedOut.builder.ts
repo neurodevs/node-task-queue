@@ -8,9 +8,13 @@ export default buildErrorSchema({
             type: 'number',
             isRequired: true,
         },
-        task: {
+        callback: {
             type: 'text',
-            isRequired: true,
+            isRequired: false,
+        },
+        name: {
+            type: 'text',
+            isRequired: false,
         },
     },
 })

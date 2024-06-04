@@ -4,6 +4,7 @@ import { RevolvingQueueOptions } from '../types/nodeTaskQueue.types'
 export default class SpyExtendsRevolvingQueue extends RevolvingQueueImpl {
     public constructor(options?: RevolvingQueueOptions) {
         super(options)
+        this.queuedTasks = new SpyArray()
     }
 
     public getLastError() {
@@ -14,5 +15,19 @@ export default class SpyExtendsRevolvingQueue extends RevolvingQueueImpl {
         return this.taskTimeoutMs
     }
 
+    public getQueuedTasks() {
+        return this.queuedTasks as SpyArray
+    }
+
     protected throwIfLastError() {}
+}
+
+class SpyArray extends Array {
+    public pushedItems: any[] = []
+
+    public push(...items: any[]) {
+        super.push(...items)
+        this.pushedItems.push(...items)
+        return this.length
+    }
 }

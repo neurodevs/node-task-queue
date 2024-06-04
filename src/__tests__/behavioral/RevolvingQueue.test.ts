@@ -2,12 +2,13 @@ import AbstractSpruceTest, {
     test,
     assert,
     errorAssert,
+    generateId,
 } from '@sprucelabs/test-utils'
 import { RevolvingQueueImpl } from '../../RevolvingQueue'
 import SpyExtendsRevolvingQueue from '../../testDoubles/SpyExtendsRevolvingQueue'
 import {
-    TaskCallback,
     RevolvingQueueOptions,
+    RevolvingTask,
 } from '../../types/nodeTaskQueue.types'
 
 export default class RevolvingQueueTest extends AbstractSpruceTest {
@@ -34,18 +35,18 @@ export default class RevolvingQueueTest extends AbstractSpruceTest {
 
     @test()
     protected static async canPushTask() {
-        this.pushTask(() => {})
+        this.pushTaskQuick({})
     }
 
     @test()
     protected static async pushTaskAutomaticallyStartsTask() {
         let wasHit = false
 
-        const task = () => {
+        const callback = () => {
             wasHit = true
         }
 
-        this.pushTask(task)
+        this.pushTaskQuick({ callback })
         assert.isTrue(wasHit)
     }
 
@@ -53,17 +54,17 @@ export default class RevolvingQueueTest extends AbstractSpruceTest {
     protected static async nextTaskDoesNotStartUntilPreviousTaskIsDone() {
         let hits: string[] = []
 
-        const task1 = async () => {
+        const callback1 = async () => {
             await this.wait(this.delayTaskMs)
             hits.push('task1')
         }
 
-        const task2 = () => {
+        const callback2 = () => {
             hits.push('task2')
         }
 
-        this.pushTask(task1)
-        this.pushTask(task2)
+        this.pushTaskQuick({ callback: callback1 })
+        this.pushTaskQuick({ callback: callback2 })
 
         await this.wait(this.delayTaskMs)
 
@@ -72,21 +73,25 @@ export default class RevolvingQueueTest extends AbstractSpruceTest {
 
     @test()
     protected static async throwsIfSyncTaskCallbackFails() {
-        const task = () => {
+        const callback = () => {
             throw new Error()
         }
 
-        const err = await this.pushTaskWaitGetLastError(task)
+        const err = await this.pushTaskWaitMsGetLastError({
+            callback,
+        })
         errorAssert.assertError(err, 'TASK_CALLBACK_FAILED')
     }
 
     @test()
     protected static async throwsIfAsyncTaskCallbackFails() {
-        const task = async () => {
+        const callback = async () => {
             throw new Error()
         }
 
-        const err = await this.pushTaskWaitGetLastError(task)
+        const err = await this.pushTaskWaitMsGetLastError({
+            callback,
+        })
         errorAssert.assertError(err, 'TASK_CALLBACK_FAILED')
     }
 
@@ -94,29 +99,35 @@ export default class RevolvingQueueTest extends AbstractSpruceTest {
     protected static async throwsTaskFailedWithCorrectErrorMessage() {
         const errorMessage = 'This is an error message!'
 
-        const task = () => {
+        const callback = () => {
             throw new Error(errorMessage)
         }
 
-        const err = await this.pushTaskWaitGetLastError(task)
+        const name = generateId()
+
+        const err = await this.pushTaskWaitMsGetLastError({
+            callback,
+            name,
+        })
         assert.doesInclude(err.message, errorMessage)
-        assert.doesInclude(err.message, task.toString())
+        assert.doesInclude(err.message, callback.toString())
+        assert.doesInclude(err.message, name)
     }
 
     @test()
     protected static async nextTaskStartsIfPreviousTaskThrows() {
         let wasHit = false
 
-        const task1 = () => {
+        const callback1 = () => {
             throw new Error()
         }
 
-        const task2 = () => {
+        const callback2 = () => {
             wasHit = true
         }
 
-        this.pushTask(task1)
-        this.pushTask(task2)
+        this.pushTaskQuick({ callback: callback1 })
+        this.pushTaskQuick({ callback: callback2 })
 
         await this.waitForTaskPromiseToExecute()
 
@@ -125,27 +136,38 @@ export default class RevolvingQueueTest extends AbstractSpruceTest {
 
     @test()
     protected static async throwsTaskTimedOutWithCorrectErrorMessage() {
-        const task = async () => {
-            await this.wait(this.delayTaskMs)
+        const timeoutMsToThrow = this.taskTimeoutMs * 1.2
+
+        const callback = async () => {
+            await this.wait(timeoutMsToThrow)
         }
 
-        const err = await this.pushTaskWaitGetLastError(task, this.delayTaskMs)
+        const name = generateId()
+
+        const err = await this.pushTaskWaitMsGetLastError(
+            { callback, name },
+            timeoutMsToThrow
+        )
+
         errorAssert.assertError(err, 'TASK_CALLBACK_TIMED_OUT')
         assert.doesInclude(err.message, this.taskTimeoutMs.toString())
-        assert.doesInclude(err.message, task.toString())
+        assert.doesInclude(err.message, callback.toString())
+        assert.doesInclude(err.message, name)
     }
 
     @test()
     protected static async clearsLastErrorAfterTaskCompletes() {
-        const task1 = () => {
+        const callback1 = () => {
             throw new Error()
         }
 
-        await this.pushTask(task1)
+        await this.pushTaskQuick({ callback: callback1 })
 
-        const task2 = () => {}
+        const callback2 = () => {}
 
-        const err = await this.pushTaskWaitGetLastError(task2)
+        const err = await this.pushTaskWaitMsGetLastError({
+            callback: callback2,
+        })
         assert.isFalsy(err)
     }
 
@@ -155,21 +177,38 @@ export default class RevolvingQueueTest extends AbstractSpruceTest {
         assert.isEqual(this.defaultQueue.getTaskTimeoutMs(), thirtySecondsInMs)
     }
 
-    private static async pushTaskWaitGetLastError(
-        task: TaskCallback,
+    @test()
+    protected static async acceptsOptionalName() {
+        const name = generateId()
+
+        this.pushTaskQuick({ name })
+
+        const tasks = this.quickQueue.getQueuedTasks()
+        assert.isLength(tasks.pushedItems, 1)
+        assert.isEqual(tasks.pushedItems[0].name, name)
+    }
+
+    private static async pushTaskWaitMsGetLastError(
+        task: RevolvingTask,
         waitMs?: number
     ) {
-        this.pushTask(task)
+        this.pushTaskQuick(task)
         await this.waitForTaskPromiseToExecute(waitMs)
+
         return this.getLastError()!
+    }
+
+    private static pushTaskQuick(task: Partial<RevolvingTask>) {
+        const { callback, name } = task
+
+        this.quickQueue.pushTask({
+            callback: callback ?? (() => {}),
+            name: name ?? generateId(),
+        })
     }
 
     private static async waitForTaskPromiseToExecute(waitMs = 1) {
         await this.wait(waitMs)
-    }
-
-    private static pushTask(task: TaskCallback) {
-        this.quickQueue.pushTask(task)
     }
 
     private static getLastError() {

@@ -5,7 +5,20 @@ export default class SpruceError extends BaseSpruceError<ErrorOptions> {
     /** an easy to understand version of the errors */
     public friendlyMessage(): string {
         const { options } = this
+        const { timeoutMs, name, callback, originalError } = options as any
+
+        const formattedCallback = callback
+            ? this.formatCallback(callback)
+            : null
+
+        const formattedName = name ? this.formatName(name) : null
+
+        const formattedError = originalError?.message
+            ? this.formatError(originalError.message)
+            : null
+
         let message
+
         switch (options?.code) {
             case 'NO_QUEUED_TASKS':
                 message = 'Cannot start task queue if no tasks are queued!'
@@ -16,11 +29,11 @@ export default class SpruceError extends BaseSpruceError<ErrorOptions> {
                 break
 
             case 'TASK_CALLBACK_FAILED':
-                message = `Task callback failed! ${options?.task ? `Failing callback:\n\n${options?.task}\n\n` : null}Original error:\n\n${options?.originalError?.message}`
+                message = `Task callback failed! ${formattedName} ${formattedCallback} ${formattedError}`
                 break
 
             case 'TASK_CALLBACK_TIMED_OUT':
-                message = `Task callback timed out after ${options?.timeoutMs} milliseconds! Failing callback:\n\n${options?.task}`
+                message = `Task callback timed out after ${timeoutMs} milliseconds! ${formattedName} ${formattedCallback}`
                 break
 
             default:
@@ -32,5 +45,17 @@ export default class SpruceError extends BaseSpruceError<ErrorOptions> {
             : message
 
         return fullMessage
+    }
+
+    private formatCallback(callback: string) {
+        return `\n\nFailing callback:\n\n${callback}\n\n`
+    }
+
+    private formatName(name: string) {
+        return `Task Name: ${name}`
+    }
+
+    private formatError(err: string) {
+        return `\n\nOriginal error:\n\n${err}\n\n`
     }
 }
