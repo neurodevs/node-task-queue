@@ -1,4 +1,4 @@
-import { RevolvingQueueImpl } from '../RevolvingQueue'
+import RevolvingQueueImpl from '../implementations/RevolvingQueue'
 import { RevolvingQueueOptions } from '../types/nodeTaskQueue.types'
 
 export default class SpyExtendsRevolvingQueue extends RevolvingQueueImpl {

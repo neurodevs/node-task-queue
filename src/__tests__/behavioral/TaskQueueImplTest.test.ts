@@ -5,7 +5,7 @@ import AbstractSpruceTest, {
     errorAssert,
     generateId,
 } from '@sprucelabs/test-utils'
-import TaskQueueImpl from '../../implementations/TaskQueueImpl'
+import TaskQueueImpl from '../../implementations/TaskQueue'
 import SpyExtendsTaskQueue from '../../testDoubles/SpyExtendsTaskQueue'
 import { TaskCallback } from '../../types/nodeTaskQueue.types'
 

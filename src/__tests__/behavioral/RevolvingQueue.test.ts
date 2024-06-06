@@ -4,7 +4,7 @@ import AbstractSpruceTest, {
     errorAssert,
     generateId,
 } from '@sprucelabs/test-utils'
-import { RevolvingQueueImpl } from '../../RevolvingQueue'
+import RevolvingQueueImpl from '../../implementations/RevolvingQueue'
 import SpyExtendsRevolvingQueue from '../../testDoubles/SpyExtendsRevolvingQueue'
 import {
     RevolvingQueueOptions,

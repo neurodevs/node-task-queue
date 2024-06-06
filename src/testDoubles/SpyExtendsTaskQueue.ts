@@ -1,4 +1,4 @@
-import TaskQueueImpl from '../implementations/TaskQueueImpl'
+import TaskQueueImpl from '../implementations/TaskQueue'
 
 export default class SpyExtendsTaskQueueImpl extends TaskQueueImpl {
     public constructor() {

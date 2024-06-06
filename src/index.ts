@@ -1,5 +1,8 @@
-export { default as TaskQueueImpl } from './implementations/TaskQueueImpl'
-export * from './implementations/TaskQueueImpl'
+export { default as TaskQueueImpl } from './implementations/TaskQueue'
+export * from './implementations/TaskQueue'
+
+export { default as RevolvingQueueImpl } from './implementations/RevolvingQueue'
+export * from './implementations/RevolvingQueue'
 
 export { default as SpyExtendsTaskQueue } from './testDoubles/SpyExtendsTaskQueue'
 export * from './testDoubles/SpyExtendsTaskQueue'

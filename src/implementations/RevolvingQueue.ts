@@ -1,13 +1,13 @@
 import { buildLog } from '@sprucelabs/spruce-skill-utils'
-import SpruceError from './errors/SpruceError'
+import SpruceError from '../errors/SpruceError'
 import {
     RevolvingQueue,
     RevolvingQueueOptions,
     RevolvingQueueConstructor,
     RevolvingTask,
-} from './types/nodeTaskQueue.types'
+} from '../types/nodeTaskQueue.types'
 
-export class RevolvingQueueImpl implements RevolvingQueue {
+export default class RevolvingQueueImpl implements RevolvingQueue {
     public static Class?: RevolvingQueueConstructor
     private static timeoutRejectMessage = 'Task timed out!'
 
