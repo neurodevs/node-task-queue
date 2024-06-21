@@ -1,6 +1,6 @@
 {
   "name": "@neurodevs/node-task-queue",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "main": "build/index.js",
   "repository": "https://github.com/neurodevs/node-task-queue.git",
   "scripts": {
@@ -29,7 +29,7 @@
   "devDependencies": {
     "@sprucelabs/jest-json-reporter": "^8.0.69",
     "@sprucelabs/resolve-path-aliases": "^2.0.45",
-    "@sprucelabs/spruce-test-fixtures": "^62.2.23",
+    "@sprucelabs/spruce-test-fixtures": "^62.2.24",
     "@sprucelabs/test": "^9.0.30",
     "@sprucelabs/test-utils": "^5.1.2",
     "@types/node": "^20.14.7",
