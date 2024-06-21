@@ -15,8 +15,10 @@ export default class RevolvingQueueImpl implements RevolvingQueue {
     protected taskTimeoutMs: number
     protected queuedTasks: RevolvingTask[]
     private isRunning: boolean
+    private timeoutReject?: (reason?: string) => void
 
     private log = buildLog('RevolvingQueueImpl')
+    private timeout?: any
 
     protected constructor(options?: RevolvingQueueOptions) {
         const { taskTimeoutMs } = options ?? {}
@@ -54,6 +56,7 @@ export default class RevolvingQueueImpl implements RevolvingQueue {
             this.handleError(err, task)
         } finally {
             this.isRunning = false
+            clearTimeout(this.timeout)
             void this.startNextTask()
         }
     }
@@ -74,11 +77,16 @@ export default class RevolvingQueueImpl implements RevolvingQueue {
     }
 
     private startTimeout() {
-        return new Promise((_resolve, reject) =>
-            setTimeout(() => {
-                reject(RevolvingQueueImpl.timeoutRejectMessage)
+        return new Promise((_resolve, reject) => {
+            this.timeout = setTimeout(() => {
+                this.timeoutReject = reject
+                this.handleTimeout()
             }, this.taskTimeoutMs)
-        )
+        })
+    }
+
+    protected handleTimeout() {
+        this.timeoutReject?.(RevolvingQueueImpl.timeoutRejectMessage)
     }
 
     private handleError(err: any, task: RevolvingTask) {

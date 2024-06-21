@@ -19,6 +19,10 @@ export default class SpyExtendsRevolvingQueue extends RevolvingQueueImpl {
         return this.queuedTasks as SpyArray
     }
 
+    public handleTimeout() {
+        return super.handleTimeout()
+    }
+
     protected throwIfLastError() {}
 }
 

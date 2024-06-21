@@ -188,6 +188,25 @@ export default class RevolvingQueueTest extends AbstractSpruceTest {
         assert.isEqual(tasks.pushedItems[0].name, name)
     }
 
+    @test()
+    protected static async timeoutShouldNotFireIfTaskIsFinished() {
+        this.quickQueue = this.Queue({ taskTimeoutMs: 50 })
+        this.pushTaskQuick({
+            callback: async () => {
+                await this.wait(25)
+            },
+        })
+
+        let wasHit = false
+
+        this.quickQueue.handleTimeout = () => {
+            wasHit = true
+        }
+        await this.wait(50)
+
+        assert.isFalse(wasHit)
+    }
+
     private static async pushTaskWaitMsGetLastError(
         task: RevolvingTask,
         waitMs?: number
