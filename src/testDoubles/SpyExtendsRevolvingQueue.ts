@@ -22,8 +22,6 @@ export default class SpyExtendsRevolvingQueue extends RevolvingQueueImpl {
     public handleTimeout() {
         return super.handleTimeout()
     }
-
-    protected throwIfLastError() {}
 }
 
 class SpyArray extends Array {

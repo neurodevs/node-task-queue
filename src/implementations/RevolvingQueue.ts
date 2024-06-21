@@ -95,7 +95,6 @@ export default class RevolvingQueueImpl implements RevolvingQueue {
         } else {
             this.handleFailedError(err, task)
         }
-        this.throwIfLastError()
     }
 
     private handleFailedError(err: Error, task: RevolvingTask) {
@@ -116,12 +115,6 @@ export default class RevolvingQueueImpl implements RevolvingQueue {
             callback: callback.toString(),
             name,
         })
-    }
-
-    protected throwIfLastError() {
-        if (this.lastError) {
-            throw this.lastError
-        }
     }
 
     private get isQueueEmpty() {
