@@ -42,7 +42,6 @@
     "watch.tsc": "tsc -w"
   },
   "dependencies": {
-    "@neurodevs/meta-node": "^0.10.18",
     "@sprucelabs/error": "^6.0.541",
     "@sprucelabs/schema": "^30.0.560",
     "@sprucelabs/spruce-core-schemas": "^40.1.547",
