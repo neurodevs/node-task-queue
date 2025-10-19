@@ -1,18 +1,18 @@
 import {
     RevolvingQueue,
-    RevolvingQueueOptions,
     RevolvingTask,
-} from '../../types/nodeTaskQueue.types'
+    RevolvingQueueOptions,
+} from '../../impl/RevolvingTaskQueue'
 
 export default class FakeRevolvingQueue implements RevolvingQueue {
-    public pushTaskCalls: RevolvingTask[] = []
-    public constructorOptions?: RevolvingQueueOptions
+    public callsToPushTask: RevolvingTask[] = []
+    public callsToConstructor: (RevolvingQueueOptions | undefined)[] = []
 
     public constructor(options?: RevolvingQueueOptions) {
-        this.constructorOptions = options
+        this.callsToConstructor.push(options)
     }
 
     public pushTask(task: RevolvingTask) {
-        this.pushTaskCalls.push(task)
+        this.callsToPushTask.push(task)
     }
 }

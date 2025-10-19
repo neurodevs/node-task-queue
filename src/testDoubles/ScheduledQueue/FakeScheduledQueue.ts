@@ -1,6 +1,6 @@
-import { Task, TaskQueue } from '../../types/nodeTaskQueue.types'
+import { ScheduledQueue, Task } from '../../impl/ScheduledTaskQueue'
 
-export default class SpyImplementsTaskQueue implements TaskQueue {
+export default class FakeScheduledQueue implements ScheduledQueue {
     public pushTaskCalls: Task[]
     public numStartCalls: number
     public numStopCalls: number

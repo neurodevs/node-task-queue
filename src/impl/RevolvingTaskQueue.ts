@@ -1,13 +1,8 @@
 import { buildLog } from '@sprucelabs/spruce-skill-utils'
 import SpruceError from '../errors/SpruceError'
-import {
-    RevolvingQueue,
-    RevolvingQueueOptions,
-    RevolvingQueueConstructor,
-    RevolvingTask,
-} from '../types/nodeTaskQueue.types'
+import { TaskCallback } from './ScheduledTaskQueue'
 
-export default class RevolvingQueueImpl implements RevolvingQueue {
+export default class RevolvingTaskQueue implements RevolvingQueue {
     public static Class?: RevolvingQueueConstructor
     private static timeoutRejectMessage = 'Task timed out!'
 
@@ -17,7 +12,7 @@ export default class RevolvingQueueImpl implements RevolvingQueue {
     private isRunning: boolean
     private timeoutReject?: (reason?: string) => void
 
-    private log = buildLog('RevolvingQueueImpl')
+    private log = buildLog('RevolvingTaskQueue')
     private timeout?: any
 
     protected constructor(options?: RevolvingQueueOptions) {
@@ -28,7 +23,7 @@ export default class RevolvingQueueImpl implements RevolvingQueue {
         this.isRunning = false
     }
 
-    public static Queue(options?: RevolvingQueueOptions) {
+    public static Create(options?: RevolvingQueueOptions) {
         return new (this.Class ?? this)(options)
     }
 
@@ -86,11 +81,11 @@ export default class RevolvingQueueImpl implements RevolvingQueue {
     }
 
     protected handleTimeout() {
-        this.timeoutReject?.(RevolvingQueueImpl.timeoutRejectMessage)
+        this.timeoutReject?.(RevolvingTaskQueue.timeoutRejectMessage)
     }
 
     private handleError(err: any, task: RevolvingTask) {
-        if (err === RevolvingQueueImpl.timeoutRejectMessage) {
+        if (err === RevolvingTaskQueue.timeoutRejectMessage) {
             this.handleTimedOutError(task)
         } else {
             this.handleFailedError(err, task)
@@ -134,4 +129,21 @@ export default class RevolvingQueueImpl implements RevolvingQueue {
     private formatName(name?: string) {
         return name ? `: ${name}` : ''
     }
+}
+
+export interface RevolvingQueue {
+    pushTask(task: RevolvingTask): void
+}
+
+export type RevolvingQueueConstructor = new (
+    options?: RevolvingQueueOptions
+) => RevolvingQueue
+
+export interface RevolvingQueueOptions {
+    taskTimeoutMs?: number
+}
+
+export interface RevolvingTask {
+    callback: TaskCallback
+    name?: string
 }

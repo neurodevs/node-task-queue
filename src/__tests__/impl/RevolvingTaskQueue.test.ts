@@ -4,33 +4,34 @@ import AbstractSpruceTest, {
     errorAssert,
     generateId,
 } from '@sprucelabs/test-utils'
-import RevolvingQueueImpl from '../../impl/RevolvingQueue'
-import SpyExtendsRevolvingQueue from '../../testDoubles/RevolvingQueue/SpyExtendsRevolvingQueue'
-import {
+import RevolvingTaskQueue, {
     RevolvingQueueOptions,
     RevolvingTask,
-} from '../../types/nodeTaskQueue.types'
+} from '../../impl/RevolvingTaskQueue'
+import SpyRevolvingQueue from '../../testDoubles/RevolvingQueue/SpyRevolvingQueue'
 
 export default class RevolvingQueueTest extends AbstractSpruceTest {
-    private static quickQueue: SpyExtendsRevolvingQueue
-    private static defaultQueue: SpyExtendsRevolvingQueue
+    private static quickQueue: SpyRevolvingQueue
+    private static instance: SpyRevolvingQueue
     private static delayTaskMs: number
     private static taskTimeoutMs: number
 
     protected static async beforeEach() {
         await super.beforeEach()
 
-        RevolvingQueueImpl.Class = SpyExtendsRevolvingQueue
+        RevolvingTaskQueue.Class = SpyRevolvingQueue
         this.delayTaskMs = 10
         this.taskTimeoutMs = 20
 
-        this.quickQueue = this.Queue({ taskTimeoutMs: this.taskTimeoutMs })
-        this.defaultQueue = this.Queue()
+        this.quickQueue = this.RevolvingTaskQueue({
+            taskTimeoutMs: this.taskTimeoutMs,
+        })
+        this.instance = this.RevolvingTaskQueue()
     }
 
     @test()
-    protected static async canCreateRevolvingQueue() {
-        assert.isTruthy(this.quickQueue)
+    protected static async createsInstance() {
+        assert.isTruthy(this.instance, 'Failed to create instance!')
     }
 
     @test()
@@ -174,7 +175,7 @@ export default class RevolvingQueueTest extends AbstractSpruceTest {
     @test()
     protected static async setsDefaultTaskTimeoutMsToThirtySeconds() {
         const thirtySecondsInMs = 30 * 1000
-        assert.isEqual(this.defaultQueue.getTaskTimeoutMs(), thirtySecondsInMs)
+        assert.isEqual(this.instance.getTaskTimeoutMs(), thirtySecondsInMs)
     }
 
     @test()
@@ -190,7 +191,7 @@ export default class RevolvingQueueTest extends AbstractSpruceTest {
 
     @test()
     protected static async timeoutShouldNotFireIfTaskIsFinished() {
-        this.quickQueue = this.Queue({ taskTimeoutMs: 50 })
+        this.quickQueue = this.RevolvingTaskQueue({ taskTimeoutMs: 50 })
         this.pushTaskQuick({
             callback: async () => {
                 await this.wait(25)
@@ -234,7 +235,7 @@ export default class RevolvingQueueTest extends AbstractSpruceTest {
         return this.quickQueue.getLastError()
     }
 
-    private static Queue(options?: RevolvingQueueOptions) {
-        return RevolvingQueueImpl.Queue(options) as SpyExtendsRevolvingQueue
+    private static RevolvingTaskQueue(options?: RevolvingQueueOptions) {
+        return RevolvingTaskQueue.Create(options) as SpyRevolvingQueue
     }
 }

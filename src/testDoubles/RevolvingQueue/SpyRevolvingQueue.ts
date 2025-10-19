@@ -1,7 +1,8 @@
-import RevolvingQueueImpl from '../../impl/RevolvingQueue'
-import { RevolvingQueueOptions } from '../../types/nodeTaskQueue.types'
+import RevolvingTaskQueue, {
+    RevolvingQueueOptions,
+} from '../../impl/RevolvingTaskQueue'
 
-export default class SpyExtendsRevolvingQueue extends RevolvingQueueImpl {
+export default class SpyRevolvingQueue extends RevolvingTaskQueue {
     public constructor(options?: RevolvingQueueOptions) {
         super(options)
         this.queuedTasks = new SpyArray()

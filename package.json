@@ -1,6 +1,6 @@
 {
   "name": "@neurodevs/node-task-queue",
-  "version": "0.7.8",
+  "version": "0.8.0",
   "description": "Queue and execute sequences of time-ordered tasks with callbacks",
   "keywords": [
     "nodejs",

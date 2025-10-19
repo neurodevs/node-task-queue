@@ -1,19 +1,21 @@
-export { default as TaskQueueImpl } from './impl/TaskQueue'
-export * from './impl/TaskQueue'
+// ScheduledQueue
 
-export { default as RevolvingQueueImpl } from './impl/RevolvingQueue'
-export * from './impl/RevolvingQueue'
+export { default as ScheduledTaskQueue } from './impl/ScheduledTaskQueue'
+export * from './impl/ScheduledTaskQueue'
 
-export { default as SpyExtendsTaskQueue } from './testDoubles/TaskQueue/SpyExtendsTaskQueue'
-export * from './testDoubles/TaskQueue/SpyExtendsTaskQueue'
+export { default as SpyScheduledQueue } from './testDoubles/ScheduledQueue/SpyScheduledQueue'
+export * from './testDoubles/ScheduledQueue/SpyScheduledQueue'
 
-export { default as SpyImplementsTaskQueue } from './testDoubles/TaskQueue/SpyImplementsTaskQueue'
-export * from './testDoubles/TaskQueue/SpyImplementsTaskQueue'
+export { default as FakeScheduledQueue } from './testDoubles/ScheduledQueue/FakeScheduledQueue'
+export * from './testDoubles/ScheduledQueue/FakeScheduledQueue'
 
-export { default as SpyExtendsRevolvingQueue } from './testDoubles/RevolvingQueue/SpyExtendsRevolvingQueue'
-export * from './testDoubles/RevolvingQueue/SpyExtendsRevolvingQueue'
+// RevolvingQueue
+
+export { default as RevolvingTaskQueue } from './impl/RevolvingTaskQueue'
+export * from './impl/RevolvingTaskQueue'
+
+export { default as SpyRevolvingQueue } from './testDoubles/RevolvingQueue/SpyRevolvingQueue'
+export * from './testDoubles/RevolvingQueue/SpyRevolvingQueue'
 
 export { default as FakeRevolvingQueue } from './testDoubles/RevolvingQueue/FakeRevolvingQueue'
 export * from './testDoubles/RevolvingQueue/FakeRevolvingQueue'
-
-export * from './types/nodeTaskQueue.types'
