@@ -2,7 +2,7 @@ import {
     RevolvingQueue,
     RevolvingQueueOptions,
     RevolvingTask,
-} from '../types/nodeTaskQueue.types'
+} from '../../types/nodeTaskQueue.types'
 
 export default class FakeRevolvingQueue implements RevolvingQueue {
     public pushTaskCalls: RevolvingTask[] = []

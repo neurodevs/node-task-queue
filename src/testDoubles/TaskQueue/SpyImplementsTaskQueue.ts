@@ -1,4 +1,4 @@
-import { Task, TaskQueue } from '../types/nodeTaskQueue.types'
+import { Task, TaskQueue } from '../../types/nodeTaskQueue.types'
 
 export default class SpyImplementsTaskQueue implements TaskQueue {
     public pushTaskCalls: Task[]
