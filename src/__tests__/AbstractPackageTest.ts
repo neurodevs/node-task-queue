@@ -1,4 +1,5 @@
-import AbstractSpruceTest, { generateId } from '@sprucelabs/test-utils'
+import AbstractSpruceTest from '@sprucelabs/test-utils'
+import generateId from '@neurodevs/generate-id'
 
 export default class AbstractPackageTest extends AbstractSpruceTest {
     protected static async beforeEach() {
