@@ -1,14 +1,13 @@
 import { buildLog } from '@sprucelabs/spruce-skill-utils'
-import SpruceError from '../errors/SpruceError'
-import { TaskCallback } from './ScheduledTaskQueue'
+import { Task } from '../types'
 
 export default class RevolvingTaskQueue implements RevolvingQueue {
     public static Class?: RevolvingQueueConstructor
     private static timeoutRejectMessage = 'Task timed out!'
 
-    protected lastError?: SpruceError
+    protected lastError?: Error
     protected taskTimeoutMs: number
-    protected queuedTasks: RevolvingTask[]
+    protected queuedTasks: Task[]
     private isRunning: boolean
     private timeoutReject?: (reason?: string) => void
 
@@ -27,7 +26,7 @@ export default class RevolvingTaskQueue implements RevolvingQueue {
         return new (this.Class ?? this)(options)
     }
 
-    public pushTask(task: RevolvingTask) {
+    public pushTask(task: Task) {
         this.logPushTask(task)
         this.queuedTasks.push(task)
         void this.startNextTask()
@@ -44,7 +43,7 @@ export default class RevolvingTaskQueue implements RevolvingQueue {
         await this.tryToExecute(task)
     }
 
-    private async tryToExecute(task: RevolvingTask) {
+    private async tryToExecute(task: Task) {
         try {
             await this.executeTaskWithTimeout(task)
         } catch (err: any) {
@@ -56,7 +55,7 @@ export default class RevolvingTaskQueue implements RevolvingQueue {
         }
     }
 
-    private async executeTaskWithTimeout(task: RevolvingTask) {
+    private async executeTaskWithTimeout(task: Task) {
         delete this.lastError
 
         const taskPromise = this.startTask(task)
@@ -65,7 +64,7 @@ export default class RevolvingTaskQueue implements RevolvingQueue {
         await Promise.race([taskPromise, timeoutPromise])
     }
 
-    private async startTask(task: RevolvingTask) {
+    private async startTask(task: Task) {
         this.logStartTask(task)
         const { callback } = task
         return await callback()
@@ -84,7 +83,7 @@ export default class RevolvingTaskQueue implements RevolvingQueue {
         this.timeoutReject?.(RevolvingTaskQueue.timeoutRejectMessage)
     }
 
-    private handleError(err: any, task: RevolvingTask) {
+    private handleError(err: any, task: Task) {
         if (err === RevolvingTaskQueue.timeoutRejectMessage) {
             this.handleTimedOutError(task)
         } else {
@@ -92,47 +91,58 @@ export default class RevolvingTaskQueue implements RevolvingQueue {
         }
     }
 
-    private handleFailedError(err: Error, task: RevolvingTask) {
-        const { callback, name } = task
-        this.lastError = new SpruceError({
-            code: 'TASK_CALLBACK_FAILED',
-            originalError: err,
-            callback: callback.toString(),
-            name,
-        })
+    private handleFailedError(err: Error, task: Task) {
+        const { name, callback } = task
+
+        const formattedCallback = this.formatCallback(callback.toString())
+        const formattedName = this.formatName(name)
+        const formattedError = this.formatError(err.message)
+
+        this.lastError = new Error(
+            `Task callback failed! ${formattedName} ${formattedCallback} ${formattedError}`
+        )
     }
 
-    private handleTimedOutError(task: RevolvingTask) {
+    private handleTimedOutError(task: Task) {
         const { callback, name } = task
-        this.lastError = new SpruceError({
-            code: 'TASK_CALLBACK_TIMED_OUT',
-            timeoutMs: this.taskTimeoutMs,
-            callback: callback.toString(),
-            name,
-        })
+
+        const formattedCallback = this.formatCallback(callback.toString())
+        const formattedName = this.formatName(name)
+
+        this.lastError = new Error(
+            `Task callback timed out after ${this.taskTimeoutMs} milliseconds! ${formattedName} ${formattedCallback}`
+        )
     }
 
     private get isQueueEmpty() {
         return this.queuedTasks.length === 0
     }
 
-    private logPushTask(task: RevolvingTask) {
+    private logPushTask(task: Task) {
         const { name } = task
         this.log.info(`Pushing task${this.formatName(name)}...`)
     }
 
-    private logStartTask(task: RevolvingTask) {
+    private logStartTask(task: Task) {
         const { name } = task
         this.log.info(`Starting task${this.formatName(name)}...`)
     }
 
-    private formatName(name?: string) {
-        return name ? `: ${name}` : ''
+    private formatName(name: string) {
+        return `Task Name: ${name}`
+    }
+
+    private formatCallback(callback: string) {
+        return `\n\nFailing callback:\n\n${callback}\n\n`
+    }
+
+    private formatError(err: string) {
+        return `\n\nOriginal error:\n\n${err}\n\n`
     }
 }
 
 export interface RevolvingQueue {
-    pushTask(task: RevolvingTask): void
+    pushTask(task: Task): void
 }
 
 export type RevolvingQueueConstructor = new (
@@ -141,9 +151,4 @@ export type RevolvingQueueConstructor = new (
 
 export interface RevolvingQueueOptions {
     taskTimeoutMs?: number
-}
-
-export interface RevolvingTask {
-    callback: TaskCallback
-    name?: string
 }

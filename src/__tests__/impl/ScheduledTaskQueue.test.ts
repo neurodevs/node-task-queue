@@ -1,16 +1,14 @@
 import { randomInt } from 'crypto'
-import AbstractSpruceTest, {
-    test,
-    assert,
-    errorAssert,
-    generateId,
-} from '@sprucelabs/test-utils'
-import ScheduledTaskQueue, { TaskCallback } from '../../impl/ScheduledTaskQueue'
+import { test, assert } from '@sprucelabs/test-utils'
+import ScheduledTaskQueue, {
+    ScheduledTask,
+} from '../../impl/ScheduledTaskQueue'
 import SpyScheduledQueue from '../../testDoubles/ScheduledQueue/SpyScheduledQueue'
+import { TaskCallback } from '../../types'
+import AbstractPackageTest from '../AbstractPackageTest'
 
-export default class ScheduledTaskQueueTest extends AbstractSpruceTest {
-    private static queue: SpyScheduledQueue
-    private static callback: () => void
+export default class ScheduledTaskQueueTest extends AbstractPackageTest {
+    private static instance: SpyScheduledQueue
     private static waitAfterMs: number
 
     protected static async beforeEach() {
@@ -18,29 +16,36 @@ export default class ScheduledTaskQueueTest extends AbstractSpruceTest {
 
         ScheduledTaskQueue.Class = SpyScheduledQueue
 
-        this.callback = () => {}
         this.waitAfterMs = randomInt(20, 50)
-        this.queue = ScheduledTaskQueue.Create() as SpyScheduledQueue
 
-        assert.isTruthy(this.queue)
+        this.instance = this.ScheduledTaskQueue()
+    }
+
+    @test()
+    protected static async createsInstance() {
+        assert.isTruthy(this.instance, 'Failed to create instance!')
     }
 
     @test()
     protected static async throwsOnStartIfNoQueuedTasks() {
-        const err = await assert.doesThrowAsync(() => this.startQueue())
-        errorAssert.assertError(err, 'NO_QUEUED_TASKS')
+        await assert.doesThrowAsync(
+            async () => await this.startQueue(),
+            'Cannot start task queue if no tasks are queued!'
+        )
     }
 
     @test()
     protected static async throwsOnStopIfNotAlreadyStarted() {
-        const err = await assert.doesThrowAsync(() => this.stopQueue())
-        errorAssert.assertError(err, 'QUEUE_NOT_STARTED')
+        await assert.doesThrowAsync(
+            async () => await this.stopQueue(),
+            'Cannot stop task queue if it has not been started!'
+        )
     }
 
     @test()
     protected static async throwsIfSyncTaskCallbackFails() {
         const callback = () => {
-            throw new Error(generateId())
+            throw new Error(this.originalError)
         }
 
         await this.assertThrowsWithErrorCallback(callback)
@@ -49,7 +54,7 @@ export default class ScheduledTaskQueueTest extends AbstractSpruceTest {
     @test()
     protected static async throwsIfAsyncTaskCallbackFails() {
         const callback = async () => {
-            throw new Error(generateId())
+            throw new Error(this.originalError)
         }
 
         await this.assertThrowsWithErrorCallback(callback)
@@ -175,10 +180,10 @@ export default class ScheduledTaskQueueTest extends AbstractSpruceTest {
     }
 
     @test('does not wait after thrown sync function', () => {
-        throw new Error('Callback failed!')
+        throw new Error('Original error!')
     })
     @test('does not wait after thrown async function', async () => {
-        throw new Error('Callback failed!')
+        throw new Error('Original error!')
     })
     protected static async doesNotWaitAfterMsIfTaskThrows(cb: TaskCallback) {
         const startTime = Date.now()
@@ -206,7 +211,7 @@ export default class ScheduledTaskQueueTest extends AbstractSpruceTest {
         const mockCallback = () => {
             numHits++
             if (numHits === 1) {
-                throw new Error('Callback failed!')
+                throw new Error(this.originalError)
             }
         }
 
@@ -236,33 +241,49 @@ export default class ScheduledTaskQueueTest extends AbstractSpruceTest {
         assert.isBelow(durationMs, 10)
     }
 
-    private static async assertThrowsWithErrorCallback(callback: () => void) {
-        this.pushTask({ callback })
+    private static pushTask(task?: Partial<ScheduledTask>) {
+        const {
+            callback = this.callback,
+            name = this.callbackName,
+            waitAfterMs = this.waitAfterMs,
+        } = task ?? {}
 
-        const err = await assert.doesThrowAsync(() => this.startQueue())
-        errorAssert.assertError(err, 'TASK_CALLBACK_FAILED')
-    }
+        const formattedTask = {
+            name,
+            callback,
+            waitAfterMs,
+        }
+        this.instance.pushTask(formattedTask)
 
-    private static pushTask(options?: {
-        callback?: () => void
-        waitAfterMs?: number
-    }) {
-        const { callback = this.callback, waitAfterMs = this.waitAfterMs } =
-            options ?? {}
-
-        this.queue.pushTask({ callback, waitAfterMs })
-        return { callback, waitAfterMs }
-    }
-
-    private static getQueuedTasks() {
-        return this.queue.getQueuedTasks()
+        return formattedTask
     }
 
     private static async startQueue() {
-        await this.queue.start()
+        await this.instance.start()
     }
 
     private static async stopQueue() {
-        await this.queue.stop()
+        await this.instance.stop()
+    }
+
+    private static getQueuedTasks() {
+        return this.instance.getQueuedTasks()
+    }
+
+    private static async assertThrowsWithErrorCallback(callback: () => void) {
+        this.pushTask({ callback })
+
+        const formattedName = this.formatName(callback.name)
+        const formattedCallback = this.formatCallback(callback.toString())
+        const formattedError = this.formatError(this.originalError)
+
+        await assert.doesThrowAsync(
+            async () => await this.startQueue(),
+            `Task callback failed! ${formattedName} ${formattedCallback} ${formattedError}`
+        )
+    }
+
+    private static ScheduledTaskQueue() {
+        return ScheduledTaskQueue.Create() as SpyScheduledQueue
     }
 }

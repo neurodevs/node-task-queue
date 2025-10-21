@@ -1,16 +1,12 @@
-import AbstractSpruceTest, {
-    test,
-    assert,
-    errorAssert,
-    generateId,
-} from '@sprucelabs/test-utils'
+import { test, assert, generateId } from '@sprucelabs/test-utils'
 import RevolvingTaskQueue, {
     RevolvingQueueOptions,
-    RevolvingTask,
 } from '../../impl/RevolvingTaskQueue'
 import SpyRevolvingQueue from '../../testDoubles/RevolvingQueue/SpyRevolvingQueue'
+import { Task } from '../../types'
+import AbstractPackageTest from '../AbstractPackageTest'
 
-export default class RevolvingQueueTest extends AbstractSpruceTest {
+export default class RevolvingQueueTest extends AbstractPackageTest {
     private static quickQueue: SpyRevolvingQueue
     private static instance: SpyRevolvingQueue
     private static delayTaskMs: number
@@ -75,25 +71,41 @@ export default class RevolvingQueueTest extends AbstractSpruceTest {
     @test()
     protected static async throwsIfSyncTaskCallbackFails() {
         const callback = () => {
-            throw new Error()
+            throw new Error(this.originalError)
         }
 
-        const err = await this.pushTaskWaitMsGetLastError({
+        const lastError = await this.pushTaskWaitMsGetLastError({
             callback,
         })
-        errorAssert.assertError(err, 'TASK_CALLBACK_FAILED')
+
+        const formattedName = this.formatName(this.callbackName)
+        const formattedCallback = this.formatCallback(callback.toString())
+        const formattedError = this.formatError(this.originalError)
+
+        assert.isEqual(
+            lastError.message,
+            `Task callback failed! ${formattedName} ${formattedCallback} ${formattedError}`
+        )
     }
 
     @test()
     protected static async throwsIfAsyncTaskCallbackFails() {
         const callback = async () => {
-            throw new Error()
+            throw new Error(this.originalError)
         }
 
-        const err = await this.pushTaskWaitMsGetLastError({
+        const lastError = await this.pushTaskWaitMsGetLastError({
             callback,
         })
-        errorAssert.assertError(err, 'TASK_CALLBACK_FAILED')
+
+        const formattedName = this.formatName(this.callbackName)
+        const formattedCallback = this.formatCallback(callback.toString())
+        const formattedError = this.formatError(this.originalError)
+
+        assert.isEqual(
+            lastError.message,
+            `Task callback failed! ${formattedName} ${formattedCallback} ${formattedError}`
+        )
     }
 
     @test()
@@ -143,17 +155,19 @@ export default class RevolvingQueueTest extends AbstractSpruceTest {
             await this.wait(timeoutMsToThrow)
         }
 
-        const name = generateId()
-
-        const err = await this.pushTaskWaitMsGetLastError(
-            { callback, name },
+        const lastError = await this.pushTaskWaitMsGetLastError(
+            { callback },
             timeoutMsToThrow
         )
 
-        errorAssert.assertError(err, 'TASK_CALLBACK_TIMED_OUT')
-        assert.doesInclude(err.message, this.taskTimeoutMs.toString())
-        assert.doesInclude(err.message, callback.toString())
-        assert.doesInclude(err.message, name)
+        const formattedName = this.formatName(this.callbackName)
+        const formattedCallback = this.formatCallback(callback.toString())
+        const timeoutMs = Math.round(this.taskTimeoutMs)
+
+        assert.isEqual(
+            lastError.message,
+            `Task callback timed out after ${timeoutMs} milliseconds! ${formattedName} ${formattedCallback}`
+        )
     }
 
     @test()
@@ -162,7 +176,7 @@ export default class RevolvingQueueTest extends AbstractSpruceTest {
             throw new Error()
         }
 
-        await this.pushTaskQuick({ callback: callback1 })
+        this.pushTaskQuick({ callback: callback1 })
 
         const callback2 = () => {}
 
@@ -209,7 +223,7 @@ export default class RevolvingQueueTest extends AbstractSpruceTest {
     }
 
     private static async pushTaskWaitMsGetLastError(
-        task: RevolvingTask,
+        task: Partial<Task>,
         waitMs?: number
     ) {
         this.pushTaskQuick(task)
@@ -218,12 +232,12 @@ export default class RevolvingQueueTest extends AbstractSpruceTest {
         return this.getLastError()!
     }
 
-    private static pushTaskQuick(task: Partial<RevolvingTask>) {
-        const { callback, name } = task
+    private static pushTaskQuick(task: Partial<Task>) {
+        const { name = this.callbackName, callback = this.callback } = task
 
         this.quickQueue.pushTask({
-            callback: callback ?? (() => {}),
-            name: name ?? generateId(),
+            name,
+            callback,
         })
     }
 

@@ -1,4 +1,5 @@
-import { ScheduledQueue, Task } from '../../impl/ScheduledTaskQueue'
+import { ScheduledQueue } from '../../impl/ScheduledTaskQueue'
+import { Task } from '../../types'
 
 export default class FakeScheduledQueue implements ScheduledQueue {
     public pushTaskCalls: Task[]

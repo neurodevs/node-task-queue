@@ -1,12 +1,12 @@
-import SpruceError from '../errors/SpruceError'
+import { Task, TaskCallback } from '../types'
 
 export default class ScheduledTaskQueue implements ScheduledQueue {
     public static Class?: ScheduledQueueConstructor
 
-    protected queuedTasks: Task[]
+    protected queuedTasks: ScheduledTask[]
     private isRunning: boolean
     private resolveWait?: () => void
-    private lastError?: SpruceError
+    private lastError?: Error
 
     protected constructor() {
         this.queuedTasks = []
@@ -17,7 +17,7 @@ export default class ScheduledTaskQueue implements ScheduledQueue {
         return new (this.Class ?? this)()
     }
 
-    public pushTask(task: Task) {
+    public pushTask(task: ScheduledTask) {
         this.queuedTasks.push(task)
     }
 
@@ -29,7 +29,7 @@ export default class ScheduledTaskQueue implements ScheduledQueue {
 
     private assertAtLeastOneTaskQueued() {
         if (this.queuedTasks.length === 0) {
-            throw new SpruceError({ code: 'NO_QUEUED_TASKS' })
+            throw new Error('Cannot start task queue if no tasks are queued!')
         }
     }
 
@@ -56,14 +56,35 @@ export default class ScheduledTaskQueue implements ScheduledQueue {
     private async tryToExecute(callback: TaskCallback) {
         try {
             await callback()
-        } catch (error) {
-            this.lastError = new SpruceError({
-                code: 'TASK_CALLBACK_FAILED',
-                originalError: error as Error,
-            })
-
+        } catch (error: unknown) {
+            this.throwTaskCallbackFailed(callback, error as Error)
             this.resolveWait?.()
         }
+    }
+
+    private throwTaskCallbackFailed(
+        callback: TaskCallback,
+        originalError: Error
+    ) {
+        const formattedCallback = this.formatCallback(callback.toString())
+        const formattedName = this.formatName(callback.name)
+        const formattedError = this.formatError(originalError.message)
+
+        this.lastError = new Error(
+            `Task callback failed! ${formattedName} ${formattedCallback} ${formattedError}`
+        )
+    }
+
+    private formatCallback(callback: string) {
+        return `\n\nFailing callback:\n\n${callback}\n\n`
+    }
+
+    private formatName(name: string) {
+        return `Task Name: ${name}`
+    }
+
+    private formatError(err: string) {
+        return `\n\nOriginal error:\n\n${err}\n\n`
     }
 
     private async wait(waitMs: number) {
@@ -85,22 +106,21 @@ export default class ScheduledTaskQueue implements ScheduledQueue {
 
     private assertQueueIsRunning() {
         if (!this.isRunning) {
-            throw new SpruceError({ code: 'QUEUE_NOT_STARTED' })
+            throw new Error(
+                'Cannot stop task queue if it has not been started!'
+            )
         }
     }
 }
 
 export interface ScheduledQueue {
-    pushTask(task: Task): void
+    pushTask(task: ScheduledTask): void
     start(): Promise<void>
     stop(): Promise<void>
 }
 
 export type ScheduledQueueConstructor = new () => ScheduledQueue
 
-export interface Task {
-    callback: TaskCallback
-    waitAfterMs?: number
+export interface ScheduledTask extends Task {
+    waitAfterMs: number
 }
-
-export type TaskCallback = () => Promise<void> | void
