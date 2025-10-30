@@ -1,8 +1,8 @@
 import {
     RevolvingQueue,
     RevolvingQueueOptions,
-} from '../../impl/RevolvingTaskQueue'
-import { Task } from '../../types'
+} from '../../impl/RevolvingTaskQueue.js'
+import { Task } from '../../types.js'
 
 export default class FakeRevolvingQueue implements RevolvingQueue {
     public callsToPushTask: Task[] = []

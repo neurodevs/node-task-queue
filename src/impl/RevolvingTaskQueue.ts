@@ -1,5 +1,4 @@
-import { buildLog } from '@sprucelabs/spruce-skill-utils'
-import { Task } from '../types'
+import { Task } from '../types.js'
 
 export default class RevolvingTaskQueue implements RevolvingQueue {
     public static Class?: RevolvingQueueConstructor
@@ -11,7 +10,7 @@ export default class RevolvingTaskQueue implements RevolvingQueue {
     private isRunning: boolean
     private timeoutReject?: (reason?: string) => void
 
-    private log = buildLog('RevolvingTaskQueue')
+    private log = console
     private timeout?: any
 
     protected constructor(options?: RevolvingQueueOptions) {

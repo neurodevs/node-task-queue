@@ -1,11 +1,12 @@
 import { randomInt } from 'crypto'
-import { test, assert } from '@sprucelabs/test-utils'
+import { test, assert } from '@neurodevs/node-tdd'
+
 import ScheduledTaskQueue, {
     ScheduledTask,
-} from '../../impl/ScheduledTaskQueue'
-import SpyScheduledQueue from '../../testDoubles/ScheduledQueue/SpyScheduledQueue'
-import { TaskCallback } from '../../types'
-import AbstractPackageTest from '../AbstractPackageTest'
+} from '../../impl/ScheduledTaskQueue.js'
+import SpyScheduledQueue from '../../testDoubles/ScheduledQueue/SpyScheduledQueue.js'
+import { TaskCallback } from '../../types.js'
+import AbstractPackageTest from '../AbstractPackageTest.js'
 
 export default class ScheduledTaskQueueTest extends AbstractPackageTest {
     private static instance: SpyScheduledQueue

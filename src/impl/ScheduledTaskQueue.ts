@@ -1,4 +1,4 @@
-import { Task, TaskCallback } from '../types'
+import { Task, TaskCallback } from '../types.js'
 
 export default class ScheduledTaskQueue implements ScheduledQueue {
     public static Class?: ScheduledQueueConstructor

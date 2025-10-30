@@ -1,6 +1,6 @@
 import RevolvingTaskQueue, {
     RevolvingQueueOptions,
-} from '../../impl/RevolvingTaskQueue'
+} from '../../impl/RevolvingTaskQueue.js'
 
 export default class SpyRevolvingQueue extends RevolvingTaskQueue {
     public constructor(options?: RevolvingQueueOptions) {

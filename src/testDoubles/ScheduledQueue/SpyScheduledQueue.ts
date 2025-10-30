@@ -1,4 +1,4 @@
-import ScheduledTaskQueue from '../../impl/ScheduledTaskQueue'
+import ScheduledTaskQueue from '../../impl/ScheduledTaskQueue.js'
 
 export default class SpyScheduledQueue extends ScheduledTaskQueue {
     public constructor() {

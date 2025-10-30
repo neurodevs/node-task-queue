@@ -1,11 +1,12 @@
-import { test, assert } from '@sprucelabs/test-utils'
 import generateId from '@neurodevs/generate-id'
+import { test, assert } from '@neurodevs/node-tdd'
+
 import RevolvingTaskQueue, {
     RevolvingQueueOptions,
-} from '../../impl/RevolvingTaskQueue'
-import SpyRevolvingQueue from '../../testDoubles/RevolvingQueue/SpyRevolvingQueue'
-import { Task } from '../../types'
-import AbstractPackageTest from '../AbstractPackageTest'
+} from '../../impl/RevolvingTaskQueue.js'
+import SpyRevolvingQueue from '../../testDoubles/RevolvingQueue/SpyRevolvingQueue.js'
+import { Task } from '../../types.js'
+import AbstractPackageTest from '../AbstractPackageTest.js'
 
 export default class RevolvingQueueTest extends AbstractPackageTest {
     private static quickQueue: SpyRevolvingQueue

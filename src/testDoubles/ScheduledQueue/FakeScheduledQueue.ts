@@ -1,5 +1,5 @@
-import { ScheduledQueue } from '../../impl/ScheduledTaskQueue'
-import { Task } from '../../types'
+import { ScheduledQueue } from '../../impl/ScheduledTaskQueue.js'
+import { Task } from '../../types.js'
 
 export default class FakeScheduledQueue implements ScheduledQueue {
     public pushTaskCalls: Task[]
