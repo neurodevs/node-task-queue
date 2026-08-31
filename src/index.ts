@@ -1,3 +1,5 @@
+export * from './types.js'
+
 // ScheduledQueue
 
 export { default as ScheduledTaskQueue } from './impl/ScheduledTaskQueue.js'
